@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="C:/Users/USER/OneDrive/Desktop/Files/MD6.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser query" current="2"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="2184"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><table title="Student" custom_title="0" dock_id="1" table="4,7:mainStudent"/><dock_state state="000000ff00000000fd0000000100000002000004420000021bfc0100000001fb000000160064006f0063006b00420072006f00770073006500310100000000000004420000010a00ffffff0000023f0000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="Course" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_" freeze_columns="0"><sort/><column_widths><column index="1" value="46"/><column index="2" value="60"/><column index="3" value="61"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="Resource" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_" freeze_columns="0"><sort/><column_widths><column index="1" value="56"/><column index="2" value="48"/><column index="3" value="257"/><column index="4" value="42"/><column index="5" value="85"/><column index="6" value="58"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="Role" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_" freeze_columns="0"><sort/><column_widths><column index="1" value="36"/><column index="2" value="50"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="Student" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_" freeze_columns="0"><sort/><column_widths><column index="1" value="50"/><column index="2" value="39"/><column index="3" value="171"/><column index="4" value="38"/><column index="5" value="85"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="sqlite_sequence" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_" freeze_columns="0"><sort/><column_widths><column index="1" value="31"/><column index="2" value="23"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table></browse_table_settings></tab_browse><tab_sql><sql name="SQL 1*">-- Table: Role
+CREATE TABLE Role (
+    RoleID INTEGER PRIMARY KEY AUTOINCREMENT,
+    RoleName TEXT NOT NULL
+);
+
+-- Table: Student
+CREATE TABLE Student (
+    StudentID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Name TEXT NOT NULL,
+    Email TEXT NOT NULL UNIQUE,
+    RoleID INTEGER NOT NULL,
+    DateRegistered DATE NOT NULL,
+    FOREIGN KEY (RoleID) REFERENCES Role(RoleID)
+);
+
+-- Table: Instructor
+CREATE TABLE Instructor (
+    InstructorID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Name TEXT NOT NULL,
+    Email TEXT NOT NULL UNIQUE,
+    RoleID INTEGER NOT NULL,
+    DateRegistered DATE NOT NULL,
+    FOREIGN KEY (RoleID) REFERENCES Role(RoleID)
+);
+
+-- Table: Course
+CREATE TABLE Course (
+    CourseID INTEGER PRIMARY KEY AUTOINCREMENT,
+    CourseName TEXT NOT NULL,
+    InstructorID INTEGER NOT NULL,
+    FOREIGN KEY (InstructorID) REFERENCES Instructor(InstructorID)
+);
+
+-- Table: Resource
+CREATE TABLE Resource (
+    ResourceID INTEGER PRIMARY KEY AUTOINCREMENT,
+    CourseID INTEGER NOT NULL,
+    FileName TEXT NOT NULL,
+    FileType TEXT NOT NULL,
+    UploadDate DATE NOT NULL,
+    UploadedBy INTEGER NOT NULL,
+    FOREIGN KEY (CourseID) REFERENCES Course(CourseID),
+    FOREIGN KEY (UploadedBy) REFERENCES Student(StudentID) ON DELETE CASCADE
+);
+
+-- Table: Study Group
+CREATE TABLE StudyGroup (
+    StudyGroupID INTEGER PRIMARY KEY AUTOINCREMENT,
+    CourseID INTEGER NOT NULL,
+    GroupName TEXT NOT NULL,
+    CreatedBy INTEGER NOT NULL,
+    CreationDate DATE NOT NULL,
+    FOREIGN KEY (CourseID) REFERENCES Course(CourseID),
+    FOREIGN KEY (CreatedBy) REFERENCES Student(StudentID) ON DELETE CASCADE
+);
+
+-- Table: Discussion
+CREATE TABLE Discussion (
+    DiscussionID INTEGER PRIMARY KEY AUTOINCREMENT,
+    CourseID INTEGER NOT NULL,
+    PostedBy INTEGER NOT NULL,
+    Date DATE NOT NULL,
+    Topic TEXT NOT NULL,
+    DiscussionContent TEXT NOT NULL,
+    FOREIGN KEY (CourseID) REFERENCES Course(CourseID),
+    FOREIGN KEY (PostedBy) REFERENCES Student(StudentID) ON DELETE CASCADE
+);
+
+INSERT INTO Role (RoleID, RoleName) 
+VALUES 
+(1, 'Student'),
+(2, 'Instructor'),
+(3, 'Admin'),
+(4, 'Guest');
+
+INSERT INTO Student (StudentID, Name, Email, RoleID, DateRegistered) 
+VALUES 
+(1001, 'Alex', 'alex@northeastern.edu', 1, '2024-09-01');
+
+INSERT INTO Instructor (InstructorID, Name, Email, RoleID, DateRegistered) 
+VALUES 
+(2001, 'Dr. John Smith', 'john.smith@northeastern.edu', 2, '2024-08-15');
+
+INSERT INTO Course (CourseID, CourseName, InstructorID) 
+VALUES 
+(2001, 'Data Analytics', 2001);
+
+INSERT INTO Resource (ResourceID, CourseID, FileName, FileType, UploadDate, UploadedBy) 
+VALUES 
+(101, 2001, 'Data_Analytics_Week1_Summary.pdf', 'PDF', CURRENT_DATE, 1001);
+
+INSERT INTO StudyGroup (StudyGroupID, CourseID, GroupName, CreatedBy, CreationDate) 
+VALUES 
+(301, 2001, 'Data Analytics Champions', 1001, CURRENT_DATE);
+
+INSERT INTO Discussion (DiscussionID, CourseID, Date, Topic, DiscussionContent, PostedBy) 
+VALUES 
+(201, 2001, CURRENT_DATE, 'Exam Preparation Tips','I recommend reviewing the key concepts from Chapter 5 and solving the practice questions.', 1001);
+
+-- Determining the contributions of students on the platform
+SELECT 
+    S.StudentID, 
+    S.Name, 
+    COUNT(R.ResourceID) AS ResourcesUploaded, 
+    COUNT(D.DiscussionID) AS DiscussionsParticipated,
+    (COUNT(R.ResourceID) + COUNT(D.DiscussionID)) AS TotalContributions
+FROM 
+    Student S
+LEFT JOIN 
+    Resource R ON S.StudentID = R.UploadedBy
+LEFT JOIN 
+    Discussion D ON S.StudentID = D.PostedBy
+GROUP BY 
+    S.StudentID, S.Name
+ORDER BY 
+    TotalContributions DESC;
+
+--Determing the most popular courses
+SELECT 
+    C.CourseID, 
+    C.CourseName, 
+    COUNT(S.StudentID) AS StudentsEnrolled, 
+    COUNT(I.InstructorID) AS InstructorsAssigned, 
+    (COUNT(S.StudentID) + COUNT(I.InstructorID)) AS TotalParticipants
+FROM 
+    Course C
+LEFT JOIN 
+    StudyGroup SG ON C.CourseID = SG.CourseID
+LEFT JOIN 
+    Student S ON SG.CreatedBy = S.StudentID
+LEFT JOIN 
+    Instructor I ON C.InstructorID = I.InstructorID
+GROUP BY 
+    C.CourseID, C.CourseName
+ORDER BY 
+    TotalParticipants DESC;
+</sql><current_tab id="0"/></tab_sql></sqlb_project>

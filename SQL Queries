@@ -1,0 +1,137 @@
+-- Table: Role
+CREATE TABLE Role (
+    RoleID INTEGER PRIMARY KEY AUTOINCREMENT,
+    RoleName TEXT NOT NULL
+);
+
+-- Table: Student
+CREATE TABLE Student (
+    StudentID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Name TEXT NOT NULL,
+    Email TEXT NOT NULL UNIQUE,
+    RoleID INTEGER NOT NULL,
+    DateRegistered DATE NOT NULL,
+    FOREIGN KEY (RoleID) REFERENCES Role(RoleID)
+);
+
+-- Table: Instructor
+CREATE TABLE Instructor (
+    InstructorID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Name TEXT NOT NULL,
+    Email TEXT NOT NULL UNIQUE,
+    RoleID INTEGER NOT NULL,
+    DateRegistered DATE NOT NULL,
+    FOREIGN KEY (RoleID) REFERENCES Role(RoleID)
+);
+
+-- Table: Course
+CREATE TABLE Course (
+    CourseID INTEGER PRIMARY KEY AUTOINCREMENT,
+    CourseName TEXT NOT NULL,
+    InstructorID INTEGER NOT NULL,
+    FOREIGN KEY (InstructorID) REFERENCES Instructor(InstructorID)
+);
+
+-- Table: Resource
+CREATE TABLE Resource (
+    ResourceID INTEGER PRIMARY KEY AUTOINCREMENT,
+    CourseID INTEGER NOT NULL,
+    FileName TEXT NOT NULL,
+    FileType TEXT NOT NULL,
+    UploadDate DATE NOT NULL,
+    UploadedBy INTEGER NOT NULL,
+    FOREIGN KEY (CourseID) REFERENCES Course(CourseID),
+    FOREIGN KEY (UploadedBy) REFERENCES Student(StudentID) ON DELETE CASCADE
+);
+
+-- Table: Study Group
+CREATE TABLE StudyGroup (
+    StudyGroupID INTEGER PRIMARY KEY AUTOINCREMENT,
+    CourseID INTEGER NOT NULL,
+    GroupName TEXT NOT NULL,
+    CreatedBy INTEGER NOT NULL,
+    CreationDate DATE NOT NULL,
+    FOREIGN KEY (CourseID) REFERENCES Course(CourseID),
+    FOREIGN KEY (CreatedBy) REFERENCES Student(StudentID) ON DELETE CASCADE
+);
+
+-- Table: Discussion
+CREATE TABLE Discussion (
+    DiscussionID INTEGER PRIMARY KEY AUTOINCREMENT,
+    CourseID INTEGER NOT NULL,
+    PostedBy INTEGER NOT NULL,
+    Date DATE NOT NULL,
+    Topic TEXT NOT NULL,
+    DiscussionContent TEXT NOT NULL,
+    FOREIGN KEY (CourseID) REFERENCES Course(CourseID),
+    FOREIGN KEY (PostedBy) REFERENCES Student(StudentID) ON DELETE CASCADE
+);
+
+INSERT INTO Role (RoleID, RoleName) 
+VALUES 
+(1, 'Student'),
+(2, 'Instructor'),
+(3, 'Admin'),
+(4, 'Guest');
+
+INSERT INTO Student (StudentID, Name, Email, RoleID, DateRegistered) 
+VALUES 
+(1001, 'Alex', 'alex@northeastern.edu', 1, '2024-09-01');
+
+INSERT INTO Instructor (InstructorID, Name, Email, RoleID, DateRegistered) 
+VALUES 
+(2001, 'Dr. John Smith', 'john.smith@northeastern.edu', 2, '2024-08-15');
+
+INSERT INTO Course (CourseID, CourseName, InstructorID) 
+VALUES 
+(2001, 'Data Analytics', 2001);
+
+INSERT INTO Resource (ResourceID, CourseID, FileName, FileType, UploadDate, UploadedBy) 
+VALUES 
+(101, 2001, 'Data_Analytics_Week1_Summary.pdf', 'PDF', CURRENT_DATE, 1001);
+
+INSERT INTO StudyGroup (StudyGroupID, CourseID, GroupName, CreatedBy, CreationDate) 
+VALUES 
+(301, 2001, 'Data Analytics Champions', 1001, CURRENT_DATE);
+
+INSERT INTO Discussion (DiscussionID, CourseID, Date, Topic, DiscussionContent, PostedBy) 
+VALUES 
+(201, 2001, CURRENT_DATE, 'Exam Preparation Tips','I recommend reviewing the key concepts from Chapter 5 and solving the practice questions.', 1001);
+
+-- Determining the contributions of students on the platform
+SELECT 
+    S.StudentID, 
+    S.Name, 
+    COUNT(R.ResourceID) AS ResourcesUploaded, 
+    COUNT(D.DiscussionID) AS DiscussionsParticipated,
+    (COUNT(R.ResourceID) + COUNT(D.DiscussionID)) AS TotalContributions
+FROM 
+    Student S
+LEFT JOIN 
+    Resource R ON S.StudentID = R.UploadedBy
+LEFT JOIN 
+    Discussion D ON S.StudentID = D.PostedBy
+GROUP BY 
+    S.StudentID, S.Name
+ORDER BY 
+    TotalContributions DESC;
+
+--Determing the most popular courses
+SELECT 
+    C.CourseID, 
+    C.CourseName, 
+    COUNT(S.StudentID) AS StudentsEnrolled, 
+    COUNT(I.InstructorID) AS InstructorsAssigned, 
+    (COUNT(S.StudentID) + COUNT(I.InstructorID)) AS TotalParticipants
+FROM 
+    Course C
+LEFT JOIN 
+    StudyGroup SG ON C.CourseID = SG.CourseID
+LEFT JOIN 
+    Student S ON SG.CreatedBy = S.StudentID
+LEFT JOIN 
+    Instructor I ON C.InstructorID = I.InstructorID
+GROUP BY 
+    C.CourseID, C.CourseName
+ORDER BY 
+    TotalParticipants DESC;

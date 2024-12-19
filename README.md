@@ -28,8 +28,8 @@ Database Implementation
 
 Tools Used:
 -
-
-DB Browser: An open-source database tool used to design, prototype, and implement the database.
+- Draw.io: This was used to create the Entity-Relationship Diagram (ERD) for the online learning platform's database. 
+- DB Browser: An open-source database tool used to create, prototype, and implement the database.
 
 Tables and Relationships
 -
